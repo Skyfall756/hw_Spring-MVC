@@ -1,5 +1,6 @@
 package ru.netology.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.netology.model.Post;
 import ru.netology.service.PostService;
@@ -31,7 +32,7 @@ public class PostController {
   }
 
   @DeleteMapping("/{id}")
-  public void removeById(long id) {
+  public void removeById(@PathVariable long id) {
     service.removeById(id);
   }
 }
