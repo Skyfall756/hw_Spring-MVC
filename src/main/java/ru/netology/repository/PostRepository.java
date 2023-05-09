@@ -1,11 +1,13 @@
 package ru.netology.repository;
 
 import org.springframework.stereotype.Repository;
+import ru.netology.exception.NotFoundException;
 import ru.netology.model.Post;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Repository
 public class PostRepository {
@@ -19,25 +21,37 @@ public class PostRepository {
     }
 
     public List<Post> all() {
-        return new ArrayList<>(posts.values());
+        return new ArrayList<>((posts.values().stream()
+                .filter(post -> !post.isRemoved()))
+                .collect(Collectors.toList()));
     }
 
 
     public Optional<Post> getById(long id) {
-        return Optional.ofNullable(posts.getOrDefault(id, null));
+
+        if (posts.containsKey(id) && !posts.get(id).isRemoved()){
+            return Optional.of(posts.get(id));
+        } else return Optional.empty();
     }
 
     public Post save(Post post) {
-        if (posts.containsKey(post.getId())) {
-            posts.replace(post.getId(), post);
+
+        long postId = post.getId();
+        if (posts.containsKey(postId)) {
+            if (!posts.get(postId).isRemoved()) {
+                posts.replace(postId, post);
+            } else {
+                throw new NotFoundException();
+            }
         } else {
             post.setId(counterID.getAndIncrement());
             posts.put(post.getId(), post);
         }
-        return post;
+    return post;
     }
 
     public void removeById(long id) {
-        posts.remove(id);
+
+        posts.get(id).setRemoved(true);
     }
 }
